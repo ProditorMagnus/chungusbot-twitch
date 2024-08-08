@@ -11,7 +11,6 @@ class Servers {
       this.db.insert(
         {
           _id: serverId,
-          whitelist: [],
           roles: [],
           muted: false,
           buttifyCount: 0,

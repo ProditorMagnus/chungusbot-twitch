@@ -68,6 +68,7 @@ export const shouldWeButt = (string: string): boolean => {
   });
 
   if (stopWordExists) {
+    //console.log("stop word", string);
     return false;
   }
 
@@ -95,6 +96,7 @@ const didWeActuallyButt = (original: string, newString: string): boolean => {
 };
 
 const subButt = (word: string): string => {
+  //console.log("subButt", word);
   const ogWord = word;
   let buttWord = config.meme;
 
@@ -148,9 +150,26 @@ const buttify = async (
 
   // Separate the string into an array
   const split = prepareForButtification(string);
+  console.log("split", split);
+  const legalSplit = split.filter(word => stopwords.indexOf(word) < 0);
+  console.log("legalSplit", legalSplit);
+  let randomIndexes = [];
+  for (let i = 0; i < split.length; i++) {
+    const word = split[i];
+    if (stopwords.indexOf(word) < 0) {
+      randomIndexes.push(i);
+    }
+  }
+
+  console.log("randomIndexes", randomIndexes);
 
   if (split.length < config.minimumWordsBeforeButtification) {
     err = 'Not enough words to buttify';
+    throw new Error(err);
+  }
+
+  if (randomIndexes.length < 1) {
+    err = 'Not enough non-ignored words to buttify';
     throw new Error(err);
   }
 
@@ -178,7 +197,7 @@ const buttify = async (
     Math.floor(
       Math.random() * Math.floor(split.length / config.wordsToPossiblyButt)
     ) +
-      1;
+    1;
     x += 1
   ) {
     logger.debug(`Attempting buttification #${x + 1}`);
@@ -226,8 +245,10 @@ const buttify = async (
       didButt = true;
     }
 
-    const rndIndex = Math.floor(Math.random() * split.length);
+    // TODO consider picking same index twice
+    const rndIndex = randomIndexes[Math.floor(Math.random() * randomIndexes.length)];
     const word = split[rndIndex];
+    console.log("choose word", word);
 
     if (!buttdex.includes(rndIndex) && !didButt) {
       split[rndIndex] = subButt(word);
