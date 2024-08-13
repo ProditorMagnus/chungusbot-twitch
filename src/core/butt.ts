@@ -245,14 +245,17 @@ const buttify = async (
       didButt = true;
     }
 
-    // TODO consider picking same index twice
     const rndIndex = randomIndexes[Math.floor(Math.random() * randomIndexes.length)];
-    const word = split[rndIndex];
-    console.log("choose word", word);
 
     if (!buttdex.includes(rndIndex) && !didButt) {
+      const word = split[rndIndex];
+      console.log("choose word", word);
       split[rndIndex] = subButt(word);
       buttdex.push(rndIndex);
+      // do not replace two words in a row
+      buttdex.push(rndIndex-1);
+      buttdex.push(rndIndex+1);
+
       if (split[rndIndex] !== word) {
         buttifiedWords.push({
           word,
