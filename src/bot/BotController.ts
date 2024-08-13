@@ -51,6 +51,12 @@ class BotController {
 
       logger.debug(`Server lock is ${server.lock}`);
 
+      // TODO configurable
+      if (["ItsJust_Vlad"].includes(nick)) {
+        logger.debug("ignore message from " + nick);
+        return;
+      }
+
       // This is a small in-memory lock to prevent the bot from spamming back to back messages
       server.lock -= 1;
 
