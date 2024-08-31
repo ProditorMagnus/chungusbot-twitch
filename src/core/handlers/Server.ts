@@ -1,7 +1,6 @@
 /* eslint-disable consistent-return */
 import db from '../db';
 import Servers from './Servers';
-import logger from '../logger';
 import stats from './Stats';
 import config, { ButtBotConfig } from '../../config';
 

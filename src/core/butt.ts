@@ -153,7 +153,7 @@ const buttify = async (
   console.log("split", split);
   const legalSplit = split.filter(word => stopwords.indexOf(word) < 0);
   console.log("legalSplit", legalSplit);
-  let randomIndexes = [];
+  const randomIndexes = [];
   for (let i = 0; i < split.length; i++) {
     const word = split[i];
     if (stopwords.indexOf(word) < 0) {

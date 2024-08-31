@@ -45,7 +45,7 @@ class BotController {
   public async processCommands(nick: string, channel: string, text: string): Promise<void> {
     if (nick === "Farbjodr" && text.startsWith("<map ")) {
       try {
-        let parts = text.substring(5).split(" ");
+        const parts = text.substring(5).split(" ");
         if (parts.length == 2) {
           wordsDb.createWord(parts[0], parts[1]);
           logger.debug(`Mapped ${parts[0]} -> ${parts[1]}`);
@@ -80,8 +80,8 @@ class BotController {
 
       // negative server.lock makes triggering more likely
       let chanceToButt = config.chanceToButt;
-      let intendedPercent = 100 * config.chanceToButt;
-      let messagesSinceLastTrigger = config.buttBuffer - server.lock;
+      const intendedPercent = 100 * config.chanceToButt;
+      const messagesSinceLastTrigger = config.buttBuffer - server.lock;
       //console.log("messagesSinceLastTrigger", messagesSinceLastTrigger, "intendedPercent", intendedPercent);
       if (messagesSinceLastTrigger > intendedPercent) {
         chanceToButt = (messagesSinceLastTrigger - config.buttBuffer) / 100;
@@ -109,7 +109,7 @@ class BotController {
         const { result, words } = await buttify(text);
 
         await this.client.say(channel, result);
-        logger.debug('Send buttified message to channel', { result });
+        logger.debug('Send buttified message to channel', { result, words });
 
         server.lock = config.buttBuffer;
         server.trackButtification();
