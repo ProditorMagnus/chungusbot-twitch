@@ -37,17 +37,35 @@ class BotController {
     this.client.on('PRIVMSG', (msg) => {
       logger.debug(msg);
 
+      this.processCommands(msg.displayName, msg.channelName, msg.messageText);
       this.handleButtChance(msg.displayName, msg.channelName, msg.messageText);
     });
   };
 
+  public async processCommands(nick: string, channel: string, text: string): Promise<void> {
+    if (nick === "Farbjodr" && text.startsWith("<map ")) {
+      try {
+        let parts = text.substring(5).split(" ");
+        if (parts.length == 2) {
+          wordsDb.createWord(parts[0], parts[1]);
+          logger.debug(`Mapped ${parts[0]} -> ${parts[1]}`);
+        }
+      } catch (error) {
+        logger.debug('Something went wrong processCommands', error);
+      }
+    }
+  }
+
   public async handleButtChance(nick: string, channel: string, text: string): Promise<void> {
+    if (nick === "Farbjodr" && text.startsWith("<map ")) {
+      return;
+    }
     logger.debug('Handling butt chance');
     try {
       const server = await servers.getServer(channel);
 
       const config = await server.getSettings();
-      logger.debug('Server config', { config });
+      //logger.debug('Server config', { config });
 
       logger.debug(`Server lock is ${server.lock}`);
 
@@ -73,6 +91,12 @@ class BotController {
       // Do the thing to handle the butt chance here
       const rng = Math.random();
       console.log("current chance", chanceToButt, "current rng", rng);
+
+      if (nick === "Farbjodr" && text.startsWith("<force ")) {
+        chanceToButt = 1;
+        server.lock = 0;
+        text = text.substring(7);
+      }
       if (
         (config.botUsername !== nick || config.breakTheFirstRuleOfButtbotics) &&
         server.lock <= 0 &&

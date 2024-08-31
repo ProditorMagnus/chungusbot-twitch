@@ -17,7 +17,7 @@ class Words {
           _id: word,
           original: word,
           buttified,
-          score: 0,
+          score: 1,
         },
         (err, newWord: WordType): void => {
           if (newWord) {

@@ -210,19 +210,6 @@ const buttify = async (
       skippedButt = true;
     }
 
-    // We check to make sure the word isn't the configured meme here (butt)
-    // even though we check it again down below. This is because the bot
-    // already has likely some scored versions of the meme that would otherwise
-    // be used without checking here as well.
-    if (
-      wordWithScore &&
-      (wordWithScore.original === config.meme ||
-        pluralize.singular(config.meme) === config.meme)
-    ) {
-      logger.debug('Skipped stored word because it matches the current meme');
-      skippedButt = true;
-    }
-
     if (wordWithScore && wordWithScore.score > 0 && !skippedButt) {
       logger.debug(
         `Word exists with score greater than 0, using it! [${wordWithScore.original}]`
