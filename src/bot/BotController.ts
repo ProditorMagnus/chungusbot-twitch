@@ -35,7 +35,7 @@ class BotController {
 
   private loadListeners = (): void => {
     this.client.on('PRIVMSG', (msg) => {
-      logger.debug(msg);
+      logger.debug([msg.displayName, msg.channelName, msg.messageText]);
 
       this.processCommands(msg.displayName, msg.channelName, msg.messageText);
       this.handleButtChance(msg.displayName, msg.channelName, msg.messageText);
@@ -102,14 +102,11 @@ class BotController {
         server.lock <= 0 &&
         rng <= chanceToButt
       ) {
-        const availableWords = text.trim().split(' ');
-        const wordsButtifiable = availableWords.filter((w) => shouldWeButt(w));
+        // const availableWords = text.trim().split(' ');
+        // const wordsButtifiable = availableWords.filter((w) => shouldWeButt(w));
         // TODO wordsDb is never updated, was discord-only logic, try reimplement it
-        const wordsWithScores = await wordsDb.getWords(wordsButtifiable);
-        const { result, words } = await buttify(
-          text,
-          wordsWithScores
-        );
+        // const wordsWithScores = await wordsDb.getWords(wordsButtifiable);
+        const { result, words } = await buttify(text);
 
         await this.client.say(channel, result);
         logger.debug('Send buttified message to channel', { result });

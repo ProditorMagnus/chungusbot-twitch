@@ -41,6 +41,17 @@ class Words {
       });
     });
 
+  public getWordIfExists = (word: string): Promise<WordType> =>
+    new Promise((resolve): void => {
+      this.db.findOne({ _id: word }, async (err, fetchedWord: WordType) => {
+        if (!fetchedWord) {
+          return resolve(null);
+        }
+
+        return resolve(fetchedWord);
+      });
+    });
+
   public getWords = (words: string[]): Promise<WordType[]> =>
     new Promise((resolve, reject): void => {
       this.db.find(

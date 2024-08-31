@@ -6,6 +6,7 @@ import pluralize from 'pluralize';
 import config from '../config';
 import logger from './logger';
 import stopwords from './stopwords';
+import wordsDb from './handlers/Words';
 import { WordType } from './handlers/Words';
 
 const h = new Hypher(english);
@@ -137,13 +138,12 @@ const subButt = (word: string): string => {
 };
 
 const buttify = async (
-  string: string,
-  wordsWithScores: WordType[]
-): Promise<{
-  result: string;
-  words: { word: string; buttified: string }[];
-}> => {
+  string: string): Promise<{
+    result: string;
+    words: { word: string; buttified: string }[];
+  }> => {
   const originalString = string;
+  const fullButtdex: number[] = [];
   const buttdex: number[] = [];
   const buttifiedWords: { word: string; buttified: string }[] = [];
   let err = null;
@@ -175,15 +175,11 @@ const buttify = async (
 
   // ButtAI Version 1.0
   //
-  // Very advanced buttchine learning. Takes the provided wordsWithScores (if
-  // there are any) and will try to buttify those first before moving on to
-  // doing it by random. If scores are below the negative threshhold, the word.
-  // will be ignored. Ignored words will be also skipped by the randomized butt
-  // system as well.
-
   // Choose words to buttify. Super simple here. Just chance to select random
   // words from the string. Eventually we want to weight them and pick them
   // that way but for now this will work.
+  //
+  // If word has saved mapping, use it instead of random replacement in word.
   //
   // As of now we use wordsToPossiblyButt as a factor for buttification chance.
   // If a sentance has 9 words it will be divided by the chance to possibly butt
@@ -191,57 +187,30 @@ const buttify = async (
   // than the chance to butt will never be buttified.
   //
   // We also check to make sure this index hasn't been buttified already!
-  for (
-    let x = 0;
-    x <
-    Math.floor(
-      Math.random() * Math.floor(split.length / config.wordsToPossiblyButt)
-    ) +
-    1;
-    x += 1
-  ) {
-    logger.debug(`Attempting buttification #${x + 1}`);
-    let didButt = false;
-    let skippedButt = false;
-    const wordWithScore = wordsWithScores[x];
-
-    if (wordWithScore && wordWithScore.score <= config.negativeThreshold) {
-      logger.debug('Word below negative threshold. Skipping and blocking.');
-      skippedButt = true;
-    }
-
-    if (wordWithScore && wordWithScore.score > 0 && !skippedButt) {
-      logger.debug(
-        `Word exists with score greater than 0, using it! [${wordWithScore.original}]`
-      );
-      // Find random occurence of word in sentence
-      const wordLocations = [];
-      for (x = 0; x < split.length; x++) {
-        if (wordWithScore.original === split[x]) {
-          wordLocations.push(x);
-        }
-      }
-
-      logger.debug('Word locations', wordLocations);
-
-      const chosenIndex = Math.floor(Math.random() * wordLocations.length);
-
-      logger.debug(`Chosen index is ${chosenIndex}`);
-
-      split[wordLocations[chosenIndex]] = wordWithScore.buttified;
-      didButt = true;
-    }
+  const replacementLimit = Math.floor(Math.random() * Math.floor(split.length / config.wordsToPossiblyButt)) + 1;
+  for (let x = 0; x < replacementLimit; x += 1) {
+    logger.debug(`Attempting buttification #${x + 1} out of ${replacementLimit}`);
 
     const rndIndex = randomIndexes[Math.floor(Math.random() * randomIndexes.length)];
 
-    if (!buttdex.includes(rndIndex) && !didButt) {
+    if (!buttdex.includes(rndIndex)) {
       const word = split[rndIndex];
-      console.log("choose word", word);
-      split[rndIndex] = subButt(word);
+      console.log("choose word", word, "at", rndIndex);
+
+      const mappedWord = await wordsDb.getWordIfExists(word);
+      if (mappedWord) {
+        logger.debug("Use saved mapping " + mappedWord.buttified);
+        split[rndIndex] = mappedWord.buttified;
+      } else {
+        split[rndIndex] = subButt(word);
+      }
+
       buttdex.push(rndIndex);
-      // do not replace two words in a row
-      buttdex.push(rndIndex-1);
-      buttdex.push(rndIndex+1);
+      // if current replacement replaced entire word, skip adjacent words
+      if (split[rndIndex].toLowerCase() == config.meme.toLowerCase()){
+        buttdex.push(rndIndex - 1);
+        buttdex.push(rndIndex + 1);
+      }
 
       if (split[rndIndex] !== word) {
         buttifiedWords.push({
@@ -249,6 +218,8 @@ const buttify = async (
           buttified: split[rndIndex],
         });
       }
+    } else {
+      logger.debug("Picked index that is not allowed " + rndIndex);
     }
   }
 
