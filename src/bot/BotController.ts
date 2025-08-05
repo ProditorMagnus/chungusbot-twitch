@@ -4,6 +4,7 @@ import logger from '../core/logger';
 import buttify, { shouldWeButt } from '../core/butt';
 import servers from '../core/handlers/Servers';
 import wordsDb from '../core/handlers/Words';
+import ignoredUsersDb from '../core/handlers/IgnoredUsers';
 import baseConfig from '../config';
 
 class BotController {
@@ -30,20 +31,31 @@ class BotController {
   };
 
   public prepare = (): void => {
+    this.loadIgnoredUsers();
     this.loadListeners();
+  };
+
+  private loadIgnoredUsers = (): void => {
+    ignoredUsersDb.getIgnoredUsers()
   };
 
   private loadListeners = (): void => {
     this.client.on('PRIVMSG', (msg) => {
       logger.debug([msg.displayName, msg.channelName, msg.messageText]);
+      let isAdmin: boolean = (msg.displayName === "Farbjodr");
+      if (ignoredUsersDb.isUserIgnored(msg.displayName) && !isAdmin){
+        return;
+      }
 
-      this.processCommands(msg.displayName, msg.channelName, msg.messageText);
+      this.processCommands(msg.displayName, msg.channelName, msg.messageText, msg.badgesRaw);
       this.handleButtChance(msg.displayName, msg.channelName, msg.messageText);
     });
   };
 
-  public async processCommands(nick: string, channel: string, text: string): Promise<void> {
-    if (nick === "Farbjodr" && text.startsWith("<map ")) {
+  public async processCommands(nick: string, channel: string, text: string, badgesRaw: string): Promise<void> {
+    let isAdmin: boolean = (nick === "Farbjodr");
+    let isMod: boolean = (isAdmin || badgesRaw.includes("moderator"))
+    if (isAdmin && text.startsWith("<map ")) {
       try {
         const parts = text.substring(5).split(" ");
         if (parts.length == 2) {
@@ -53,6 +65,21 @@ class BotController {
       } catch (error) {
         logger.debug('Something went wrong processCommands', error);
       }
+    }
+    if (isMod && text.startsWith("@FarbjodrBot ignore ")) {
+      try {
+        const parts = text.split(" ");
+        if (parts.length == 3) {
+          ignoredUsersDb.addIgnoredUser(parts[2].trim());
+          await this.client.say(channel, "I will ignore messages from "+parts[2]);
+        }
+      } catch (error) {
+        logger.debug('Something went wrong processCommands', error);
+      }
+    }
+    if (text.search("^@FarbjodrBot (off|ignore|stop)$") === 0){
+      ignoredUsersDb.addIgnoredUser(nick);
+      await this.client.say(channel, "I will ignore messages from "+nick);
     }
   }
 
