@@ -231,19 +231,13 @@ const buttify = async (
     err = "We didn't buttify anything! Abort!";
   }
 
-  const escapedFinal = final
-    .split(' ')
-    .map(function (part) {
-      return validUrl.isUri(part) ? '<' + part + '>' : part;
-    })
-    .join(' ');
 
   // Output if no error
   if (err) {
     throw new Error(err);
   }
 
-  return { result: escapedFinal, words: buttifiedWords };
+  return { result: final, words: buttifiedWords };
 };
 
 export default buttify;
