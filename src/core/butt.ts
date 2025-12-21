@@ -143,7 +143,6 @@ const buttify = async (
     words: { word: string; buttified: string }[];
   }> => {
   const originalString = string;
-  const fullButtdex: number[] = [];
   const buttdex: number[] = [];
   const buttifiedWords: { word: string; buttified: string }[] = [];
   let err = null;

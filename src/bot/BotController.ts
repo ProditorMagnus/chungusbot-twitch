@@ -24,6 +24,7 @@ class BotController {
 
     this.client.on('error', (error) => {
       logger.error(`Something went wrong. Reason: ${error.message}`);
+      process.exit(1);
     });
 
     this.client.connect();
