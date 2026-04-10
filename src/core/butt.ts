@@ -186,7 +186,7 @@ const buttify = async (
   // than the chance to butt will never be buttified.
   //
   // We also check to make sure this index hasn't been buttified already!
-  const replacementLimit = Math.floor(Math.random() * Math.floor(split.length / config.wordsToPossiblyButt)) + 1;
+  const replacementLimit = Math.floor(Math.random() * Math.floor(randomIndexes.length / config.wordsToPossiblyButt)) + 1;
   for (let x = 0; x < replacementLimit; x += 1) {
     logger.debug(`Attempting buttification #${x + 1} out of ${replacementLimit}`);
 
@@ -205,11 +205,9 @@ const buttify = async (
       }
 
       buttdex.push(rndIndex);
-      // if current replacement replaced entire word, skip adjacent words
-      if (split[rndIndex].toLowerCase() == config.meme.toLowerCase()){
-        buttdex.push(rndIndex - 1);
-        buttdex.push(rndIndex + 1);
-      }
+      // skip adjacent words
+      buttdex.push(rndIndex - 1);
+      buttdex.push(rndIndex + 1);
 
       if (split[rndIndex] !== word) {
         buttifiedWords.push({
